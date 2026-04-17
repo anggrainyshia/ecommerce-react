@@ -1,5 +1,5 @@
-const COMPANY = process.env.COMPANY_NAME || 'ShopEase';
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || 'support@shopease.dev';
+const COMPANY = process.env.COMPANY_NAME || 'EveryBit';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || 'support@everybit.dev';
 
 const formatPrice = (p) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(p);

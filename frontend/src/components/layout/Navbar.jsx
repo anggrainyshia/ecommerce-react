@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
+import Logo from '../common/Logo';
 
 function SunIcon() {
   return (
@@ -50,9 +51,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-blue-600 flex-shrink-0">
-            <span className="text-2xl">🛍️</span>
-            <span>Totall</span>
+          <Link to="/" className="flex-shrink-0">
+            <Logo size="sm" />
           </Link>
 
           {/* Desktop nav links */}

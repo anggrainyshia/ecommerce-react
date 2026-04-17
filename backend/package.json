@@ -1,5 +1,5 @@
 {
-  "name": "e-totall-backend",
+  "name": "everybit-backend",
   "version": "1.0.0",
   "description": "E-commerce REST API - Node.js + Express + PostgreSQL + Redis",
   "main": "src/server.js",

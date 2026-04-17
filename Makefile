@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-# Totall — e-totall
+# EveryBit
 # ─────────────────────────────────────────────────────────────
 # Usage: make <target>
 # Run   `make help`  to see all available commands.
@@ -21,7 +21,7 @@ endif
 .PHONY: help
 help: ## Show this help message
 	@echo ""
-	@echo "  Totall — Makefile Commands"
+	@echo "  EveryBit — Makefile Commands"
 	@echo "  ─────────────────────────────────────────────────"
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*##/ { \
 	  printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -37,7 +37,7 @@ up: check-env ## Build images and start all services (detached)
 	@echo "  Backend   →  http://localhost:5000/api"
 	@echo "  Health    →  http://localhost:5000/health"
 	@echo ""
-	@echo "  Admin login: admin@etotall.dev / Admin@123"
+	@echo "  Admin login: admin@everybit.dev / Admin@123"
 	@echo ""
 
 .PHONY: up-logs

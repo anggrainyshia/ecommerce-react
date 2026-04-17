@@ -1,4 +1,4 @@
-# Totall — e-totall
+# EveryBit
 
 A full-stack e-commerce web application built to demonstrate modern web development skills. Features a complete shopping experience for customers and a management dashboard for admins.
 
@@ -19,7 +19,7 @@ A full-stack e-commerce web application built to demonstrate modern web developm
 ## Project Structure
 
 ```
-e-totall/
+everybit/
 ├── docker-compose.yml          # Orchestrates all 4 services
 ├── .env.example                # Root environment template
 │
@@ -222,7 +222,7 @@ pending  →  paid  →  shipped
 
 ```bash
 git clone <your-repo-url>
-cd e-totall
+cd everybit
 
 cp .env.example .env
 ```
@@ -251,7 +251,7 @@ The database schema and seed data are applied automatically on first boot.
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@etotall.dev` | `Admin@123` |
+| Admin | `admin@everybit.dev` | `Admin@123` |
 | User | Register at `/register` | your choice |
 
 > Note: The seed SQL creates the admin with a pre-hashed password. If it does not work, register normally and then manually set `role = 'admin'` in the database.

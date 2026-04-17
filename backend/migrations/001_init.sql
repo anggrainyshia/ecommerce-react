@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS payments (
 INSERT INTO users (name, email, password, role)
 VALUES (
     'Admin',
-    'admin@etotall.dev',
+    'admin@everybit.dev',
     '$2a$12$QRcP7wji04mjltW6hZQK5unvfrPcnX7yEKhl5VDPP4wOl1uVamvFS',
     'admin'
 ) ON CONFLICT (email) DO NOTHING;

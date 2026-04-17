@@ -133,7 +133,9 @@ exports.createOrder = async (req, res) => {
     });
 
     // Send confirmation email (non-blocking)
-    emailService.sendOrderConfirmation(fullOrder).catch(() => {});
+    emailService.sendOrderConfirmation(fullOrder).catch((err) =>
+      console.error('📧 Email failed:', err.message)
+    );
 
     res.status(201).json({ order: fullOrder });
   } catch (err) {

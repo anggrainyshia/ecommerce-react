@@ -55,7 +55,7 @@ async function getTransporter() {
 async function sendMail({ to, subject, html }) {
   try {
     const t = await getTransporter();
-  const from = process.env.EMAIL_FROM || 'Totall <noreply@etotall.dev>';
+  const from = process.env.EMAIL_FROM || 'EveryBit <noreply@everybit.dev>';
     const info = await t.sendMail({ from, to, subject, html });
 
     // Print Ethereal preview URL for demo

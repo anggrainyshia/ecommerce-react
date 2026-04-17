@@ -1,4 +1,5 @@
 import { useForm, Controller } from 'react-hook-form';
+import Logo from '../components/common/Logo';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PhoneInput from '../components/common/PhoneInput';
@@ -26,9 +27,9 @@ export default function Register() {
       <div className="w-full max-w-md">
         <div className="card">
           <div className="text-center mb-8">
-            <span className="text-4xl">🛍️</span>
+            <div className="flex justify-center mb-2"><Logo size="md" /></div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">Create account</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Join Totall today</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Join EveryBit today</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

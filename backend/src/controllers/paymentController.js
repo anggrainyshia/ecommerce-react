@@ -1,6 +1,7 @@
 const midtransClient = require('midtrans-client');
-const { Order, Payment } = require('../models');
+const { Order, OrderItem, Payment, OrderTracking } = require('../models');
 const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 const snap = new midtransClient.Snap({
   isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
@@ -120,6 +121,17 @@ exports.webhook = async (req, res) => {
 
     await order.update({ status: orderStatus });
 
+    const updatedOrder = await Order.findByPk(order.id, {
+      include: [
+        { model: OrderItem, as: 'items' },
+        { model: Payment, as: 'payment', attributes: ['status', 'paymentMethod', 'paidAt'] },
+        { model: OrderTracking, as: 'tracking' },
+      ],
+    });
+    emailService.sendStatusUpdate(updatedOrder, orderStatus).catch((err) =>
+      console.error('📧 Email failed:', err.message)
+    );
+
     res.json({ message: 'Notification processed' });
   } catch (err) {
     console.error('Webhook error:', err);
@@ -157,7 +169,19 @@ exports.mockPayment = async (req, res) => {
 
     await order.update({ status: orderStatus });
 
-    res.json({ message: `Payment ${paymentStatus}`, order: { ...order.toJSON(), status: orderStatus } });
+    const updatedOrder = await Order.findByPk(order.id, {
+      include: [
+        { model: OrderItem, as: 'items' },
+        { model: Payment, as: 'payment', attributes: ['status', 'paymentMethod', 'paidAt'] },
+        { model: OrderTracking, as: 'tracking' },
+      ],
+    });
+
+    emailService.sendStatusUpdate(updatedOrder, orderStatus).catch((err) =>
+      console.error('📧 Email failed:', err.message)
+    );
+
+    res.json({ message: `Payment ${paymentStatus}`, order: updatedOrder });
   } catch (err) {
     res.status(500).json({ error: 'Mock payment failed' });
   }

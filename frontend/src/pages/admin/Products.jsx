@@ -71,6 +71,7 @@ export default function AdminProducts() {
       }
 
       qc.invalidateQueries({ queryKey: ['admin-products'] });
+      setImageFile(null);
       if (editProduct) {
         setShowForm(false);
       } else {
@@ -215,9 +216,11 @@ export default function AdminProducts() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
                   <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])}
                     className="input-field py-1.5 text-sm" />
-                  {editProduct?.image && !imageFile && (
+                  {imageFile ? (
+                    <img src={URL.createObjectURL(imageFile)} alt="" className="mt-2 w-24 h-24 object-cover rounded-lg" />
+                  ) : editProduct?.image ? (
                     <img src={`${API_BASE}${editProduct.image}`} alt="" className="mt-2 w-24 h-24 object-cover rounded-lg" />
-                  )}
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="checkbox" id="isActive" checked={form.isActive}

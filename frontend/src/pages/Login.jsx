@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form';
+import Logo from '../components/common/Logo';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -26,7 +27,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="card">
           <div className="text-center mb-8">
-            <span className="text-4xl">🛍️</span>
+            <div className="flex justify-center mb-2"><Logo size="md" /></div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-2">Welcome back</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Sign in to your account</p>
           </div>
@@ -67,7 +68,7 @@ export default function Login() {
           </p>
 
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-300">
-            <strong>Demo admin:</strong> admin@etotall.dev / Admin@123
+            <strong>Demo admin:</strong> admin@everybit.dev / Admin@123
           </div>
         </div>
       </div>

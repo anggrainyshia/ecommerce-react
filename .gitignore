@@ -43,6 +43,7 @@ redis_data/
 # ─── OS Files ─────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
+**/.DS_Store
 ._*
 .Spotlight-V100
 .Trashes
@@ -62,8 +63,10 @@ desktop.ini
 *.swo
 
 # ─── Claude Code ──────────────────────────────────────────────
-# Local settings may contain machine-specific paths or API keys
+# Local settings, memory, and session transcripts
 .claude/settings.local.json
+.claude/memory/
+.claude/projects/
 
 # ─── Misc ─────────────────────────────────────────────────────
 *.pem
