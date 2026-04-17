@@ -3,12 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 import ProductCard from '../components/product/ProductCard';
 import Loading from '../components/common/Loading';
+import useDebounce from '../hooks/useDebounce';
 
 export default function Home() {
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState('createdAt');
+
+  const search = useDebounce(searchInput, 400);
 
   const { data: catData } = useQuery({
     queryKey: ['categories'],
@@ -24,11 +27,6 @@ export default function Home() {
     keepPreviousData: true,
   });
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Banner */}
@@ -39,18 +37,15 @@ export default function Home() {
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+        <div className="flex-1">
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
             placeholder="Search products..."
-            className="input-field flex-1"
+            className="input-field w-full"
           />
-          <button type="submit" className="btn-primary px-5">
-            Search
-          </button>
-        </form>
+        </div>
 
         <select
           value={category}
