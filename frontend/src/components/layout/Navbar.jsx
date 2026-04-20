@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import Logo from '../common/Logo';
+import { useWishlist } from '../../context/WishlistContext';
 
 function SunIcon() {
   return (
@@ -27,6 +28,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { cart, fetchCart } = useCart();
   const { dark, toggle } = useTheme();
+  const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -80,6 +82,18 @@ export default function Navbar() {
 
             {user ? (
               <>
+                {/* Wishlist */}
+                <Link to="/wishlist" className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+
                 {/* Cart */}
                 <Link to="/cart" className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,6 +169,12 @@ export default function Navbar() {
           </Link>
           {user ? (
             <>
+              <Link to="/wishlist" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+                Wishlist
+                {wishlistCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">{wishlistCount}</span>
+                )}
+              </Link>
               <Link to="/cart" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
                 Cart
                 {cart.count > 0 && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import Loading from '../../components/common/Loading';
+import useDebounce from '../../hooks/useDebounce';
 import toast from 'react-hot-toast';
 
 const formatPrice = (p) =>
@@ -40,13 +41,15 @@ export default function AdminOrders() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebounce(searchInput, 400);
   const [selected, setSelected] = useState(null);
   const [statusNote, setStatusNote] = useState('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', page, statusFilter],
+    queryKey: ['admin-orders', page, statusFilter, search],
     queryFn: () =>
-      api.get('/admin/orders', { params: { page, limit: 15, status: statusFilter || undefined } }).then((r) => r.data),
+      api.get('/admin/orders', { params: { page, limit: 15, status: statusFilter || undefined, search: search || undefined } }).then((r) => r.data),
   });
 
   const handleStatusUpdate = async (orderId, newStatus) => {
@@ -65,19 +68,28 @@ export default function AdminOrders() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Orders</h1>
 
-      {/* Filter */}
-      <div className="flex gap-3 mb-6">
-        {['', 'pending', 'paid', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'failed'].map((s) => (
-          <button
-            key={s}
-            onClick={() => { setStatusFilter(s); setPage(1); }}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-          </button>
-        ))}
+      {/* Filter & Search */}
+      <div className="mb-6 space-y-3">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+          placeholder="Search by order #, customer name, or email..."
+          className="input-field max-w-md text-sm"
+        />
+        <div className="flex flex-wrap gap-2">
+          {['', 'pending', 'paid', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'failed'].map((s) => (
+            <button
+              key={s}
+              onClick={() => { setStatusFilter(s); setPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Order detail modal */}

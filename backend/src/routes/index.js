@@ -7,6 +7,8 @@ router.use('/categories', require('./categories'));
 router.use('/cart', require('./cart'));
 router.use('/orders', require('./orders'));
 router.use('/payments', require('./payments'));
+router.use('/wishlist', require('./wishlist'));
+router.use('/coupons', require('./coupons'));
 router.use('/admin', require('./admin'));
 
 module.exports = router;

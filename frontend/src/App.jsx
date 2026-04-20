@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { WishlistProvider } from './context/WishlistContext';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminRoute from './components/common/AdminRoute';
@@ -17,12 +18,14 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Profile from './pages/Profile';
 import OrderSuccess from './pages/OrderSuccess';
+import Wishlist from './pages/Wishlist';
 
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminProducts from './pages/admin/Products';
 import AdminCategories from './pages/admin/Categories';
 import AdminOrders from './pages/admin/Orders';
+import AdminCoupons from './pages/admin/Coupons';
 
 export default function App() {
   return (
@@ -30,6 +33,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <WishlistProvider>
           <Routes>
             <Route path="/" element={<Layout />}>
               {/* Public */}
@@ -44,6 +48,7 @@ export default function App() {
                 <Route path="checkout" element={<Checkout />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="order-success" element={<OrderSuccess />} />
+                <Route path="wishlist" element={<Wishlist />} />
               </Route>
 
               {/* Admin routes */}
@@ -52,9 +57,11 @@ export default function App() {
                 <Route path="admin/products" element={<AdminProducts />} />
                 <Route path="admin/categories" element={<AdminCategories />} />
                 <Route path="admin/orders" element={<AdminOrders />} />
+                <Route path="admin/coupons" element={<AdminCoupons />} />
               </Route>
             </Route>
           </Routes>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

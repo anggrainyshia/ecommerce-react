@@ -46,6 +46,18 @@ export default function OrderSuccess() {
           </div>
 
           <hr className="my-3 border-gray-100 dark:border-gray-700" />
+          {order.couponCode && order.discountAmount > 0 && (
+            <>
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span>Subtotal</span>
+                <span>{formatPrice(order.totalAmount + parseFloat(order.discountAmount))}</span>
+              </div>
+              <div className="flex justify-between text-sm text-green-600 dark:text-green-400 mb-1 font-medium">
+                <span>Discount ({order.couponCode})</span>
+                <span>− {formatPrice(order.discountAmount)}</span>
+              </div>
+            </>
+          )}
           <div className="flex justify-between font-bold text-gray-900 dark:text-white">
             <span>Total</span>
             <span className="text-blue-600 dark:text-blue-400">{formatPrice(order.totalAmount)}</span>

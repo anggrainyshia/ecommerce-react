@@ -38,7 +38,7 @@ export default function Cart() {
             <div key={itemKey(item)} className="card flex items-center gap-4 p-4">
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                 {item.image ? (
-                  <img src={`${API_BASE}${item.image}`} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={`${API_BASE}${item.image}`} alt={item.name} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300 text-2xl">📦</div>
                 )}

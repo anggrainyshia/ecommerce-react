@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import Loading from '../components/common/Loading';
@@ -22,10 +22,12 @@ const statusColors = {
 
 export default function Profile() {
   const { user, updateProfile } = useAuth();
+  const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
   const [saving, setSaving] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [cancellingId, setCancellingId] = useState(null);
 
   const toggleOrder = (id) => setExpandedOrders((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -34,6 +36,20 @@ export default function Profile() {
     queryFn: () => api.get('/orders').then((r) => r.data),
     staleTime: 0,
   });
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Cancel this order?')) return;
+    try {
+      setCancellingId(orderId);
+      await api.post(`/orders/${orderId}/cancel`);
+      toast.success('Order cancelled');
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to cancel order');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -147,18 +163,36 @@ export default function Profile() {
                     ))}
                   </div>
 
-                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{order.shippingName} · {order.shippingPhone}</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">{formatPrice(order.totalAmount)}</span>
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    {order.couponCode && order.discountAmount > 0 && (
+                      <div className="flex justify-between text-xs text-green-600 dark:text-green-400 mb-1">
+                        <span>Discount ({order.couponCode})</span>
+                        <span>− {formatPrice(order.discountAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{order.shippingName} · {order.shippingPhone}</span>
+                      <span className="font-bold text-blue-600 dark:text-blue-400">{formatPrice(order.totalAmount)}</span>
+                    </div>
                   </div>
 
-                  {/* Tracking toggle */}
-                  <button
-                    onClick={() => toggleOrder(order.id)}
-                    className="mt-3 text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                  >
-                    {expandedOrders[order.id] ? '▲ Hide tracking' : '▼ Show tracking'}
-                  </button>
+                  <div className="flex items-center justify-between mt-3">
+                    <button
+                      onClick={() => toggleOrder(order.id)}
+                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                    >
+                      {expandedOrders[order.id] ? '▲ Hide tracking' : '▼ Show tracking'}
+                    </button>
+                    {order.status === 'pending' && (
+                      <button
+                        onClick={() => handleCancelOrder(order.id)}
+                        disabled={cancellingId === order.id}
+                        className="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                      >
+                        {cancellingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                      </button>
+                    )}
+                  </div>
 
                   {expandedOrders[order.id] && (
                     <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">

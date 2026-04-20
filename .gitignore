@@ -68,6 +68,9 @@ desktop.ini
 .claude/memory/
 .claude/projects/
 
+# ─── Temporary / Local-only ───────────────────────────────────
+docs/
+
 # ─── Misc ─────────────────────────────────────────────────────
 *.pem
 *.key

@@ -327,7 +327,7 @@ export default function AdminProducts() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {p.image ? (
-                          <img src={`${API_BASE}${p.image}`} alt="" className="w-10 h-10 object-cover rounded-lg" />
+                          <img src={`${API_BASE}${p.image}`} alt="" loading="lazy" className="w-10 h-10 object-cover rounded-lg" />
                         ) : (
                           <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">📦</div>
                         )}

@@ -17,7 +17,10 @@ export default function Checkout() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [placing, setPlacing] = useState(false);
-  const [paymentMode, setPaymentMode] = useState('midtrans'); // 'midtrans' | 'mock'
+  const [paymentMode, setPaymentMode] = useState('midtrans');
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState(null); // { code, discountAmount }
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     defaultValues: {
@@ -32,14 +35,38 @@ export default function Checkout() {
 
   useEffect(() => { fetchCart(); }, [fetchCart]);
 
+  useEffect(() => {
+    if (coupon) { setCoupon(null); setCouponInput(''); }
+  }, [cart.total]);
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    try {
+      setValidatingCoupon(true);
+      const { data } = await api.post('/coupons/validate', { code: couponInput.trim(), orderTotal: cart.total });
+      setCoupon({ code: data.coupon.code, discountAmount: data.discountAmount });
+      toast.success(`Coupon applied! You save ${formatPrice(data.discountAmount)}`);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Invalid coupon');
+      setCoupon(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const discountedTotal = coupon ? Math.max(0, cart.total - coupon.discountAmount) : cart.total;
+
   const onSubmit = async (formData) => {
     if (cart.items.length === 0) { toast.error('Your cart is empty'); return; }
 
     try {
       setPlacing(true);
 
-      // 1. Create order
-      const { data: orderData } = await api.post('/orders', formData);
+      // 1. Create order (include coupon if applied)
+      const { data: orderData } = await api.post('/orders', {
+        ...formData,
+        couponCode: coupon?.code || undefined,
+      });
       const order = orderData.order;
 
       // Refresh cart UI and order history
@@ -195,9 +222,49 @@ export default function Checkout() {
               ))}
             </div>
             <hr className="my-4 border-gray-100 dark:border-gray-700" />
+
+            {/* Coupon */}
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1.5">Promo Code</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); if (coupon) setCoupon(null); }}
+                  placeholder="Enter code"
+                  className="input-field flex-1 text-sm py-1.5"
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={validatingCoupon || !couponInput.trim()}
+                  className="btn-secondary text-sm px-3 py-1.5 disabled:opacity-40"
+                >
+                  {validatingCoupon ? '...' : 'Apply'}
+                </button>
+              </div>
+              {coupon && (
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">
+                  ✓ {coupon.code} — saving {formatPrice(coupon.discountAmount)}
+                </p>
+              )}
+            </div>
+
+            {coupon && (
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span>Subtotal</span>
+                <span>{formatPrice(cart.total)}</span>
+              </div>
+            )}
+            {coupon && (
+              <div className="flex justify-between text-sm text-green-600 dark:text-green-400 mb-1 font-medium">
+                <span>Discount ({coupon.code})</span>
+                <span>− {formatPrice(coupon.discountAmount)}</span>
+              </div>
+            )}
             <div className="flex justify-between font-bold text-gray-900 dark:text-white">
               <span>Total</span>
-              <span className="text-blue-600 dark:text-blue-400">{formatPrice(cart.total)}</span>
+              <span className="text-blue-600 dark:text-blue-400">{formatPrice(discountedTotal)}</span>
             </div>
             <button
               type="submit"

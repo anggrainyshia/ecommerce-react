@@ -9,5 +9,6 @@ router.use(authenticate);
 router.post('/', checkoutRules, validate, ctrl.createOrder);
 router.get('/', ctrl.getMyOrders);
 router.get('/:id', ctrl.getOrderById);
+router.post('/:id/cancel', ctrl.cancelOrder);
 
 module.exports = router;

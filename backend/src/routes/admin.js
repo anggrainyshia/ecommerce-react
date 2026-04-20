@@ -8,6 +8,9 @@ const productCtrl = require('../controllers/productController');
 const categoryCtrl = require('../controllers/categoryController');
 const orderCtrl = require('../controllers/orderController');
 const variantCtrl = require('../controllers/variantController');
+const couponCtrl = require('../controllers/couponController');
+const { Product, ProductVariant } = require('../models');
+const { Op } = require('sequelize');
 
 // All admin routes require authentication + admin role
 router.use(authenticate, requireAdmin);
@@ -32,5 +35,26 @@ router.delete('/categories/:id', categoryCtrl.remove);
 // ─── Orders ───────────────────────────────────────────────────
 router.get('/orders', orderCtrl.adminGetAll);
 router.put('/orders/:id/status', orderCtrl.adminUpdateStatus);
+
+// ─── Coupons ──────────────────────────────────────────────────
+router.get('/coupons', couponCtrl.adminGetAll);
+router.post('/coupons', couponCtrl.adminCreate);
+router.put('/coupons/:id', couponCtrl.adminUpdate);
+router.delete('/coupons/:id', couponCtrl.adminDelete);
+
+// ─── Low Stock ────────────────────────────────────────────────
+router.get('/low-stock', async (req, res) => {
+  try {
+    const threshold = parseInt(req.query.threshold || '5');
+    const products = await Product.findAll({
+      where: { stock: { [Op.lte]: threshold }, isActive: true },
+      include: [{ model: ProductVariant, as: 'variants' }],
+      order: [['stock', 'ASC']],
+    });
+    res.json({ products, threshold });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch low stock products' });
+  }
+});
 
 module.exports = router;

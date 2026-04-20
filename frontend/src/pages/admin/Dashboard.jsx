@@ -20,6 +20,8 @@ function StatCard({ label, value, icon, color }) {
   );
 }
 
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+
 export default function AdminDashboard() {
   const { data: ordersData, isLoading: loadingOrders } = useQuery({
     queryKey: ['admin-orders'],
@@ -29,6 +31,12 @@ export default function AdminDashboard() {
   const { data: productsData } = useQuery({
     queryKey: ['admin-products-count'],
     queryFn: () => api.get('/admin/products', { params: { limit: 1 } }).then((r) => r.data),
+  });
+
+  const { data: lowStockData } = useQuery({
+    queryKey: ['admin-low-stock'],
+    queryFn: () => api.get('/admin/low-stock').then((r) => r.data),
+    refetchInterval: 60000,
   });
 
   const orders = ordersData?.orders || [];
@@ -61,11 +69,12 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
           { to: '/admin/products', label: 'Manage Products', icon: '🏷️', desc: 'Add, edit, delete products' },
           { to: '/admin/categories', label: 'Manage Categories', icon: '📂', desc: 'Organize product categories' },
           { to: '/admin/orders', label: 'Manage Orders', icon: '📦', desc: 'View & update order status' },
+          { to: '/admin/coupons', label: 'Manage Coupons', icon: '🎟️', desc: 'Create & manage promo codes' },
         ].map((link) => (
           <Link key={link.to} to={link.to} className="card hover:shadow-md transition-shadow flex items-center gap-4">
             <span className="text-3xl">{link.icon}</span>
@@ -76,6 +85,36 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Low Stock Alert */}
+      {lowStockData?.products?.length > 0 && (
+        <div className="card border-l-4 border-orange-400 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-orange-500 text-lg">⚠️</span>
+            <h2 className="font-bold text-gray-900">Low Stock Alert</h2>
+            <span className="ml-auto bg-orange-100 text-orange-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {lowStockData.products.length} product{lowStockData.products.length > 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {lowStockData.products.map((p) => (
+              <Link key={p.id} to="/admin/products" className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                {p.image ? (
+                  <img src={`${API_BASE}${p.image}`} alt="" loading="lazy" className="w-9 h-9 object-cover rounded-lg flex-shrink-0" />
+                ) : (
+                  <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 flex-shrink-0">📦</div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                </div>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${p.stock === 0 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>
+                  {p.stock === 0 ? 'Out of stock' : `${p.stock} left`}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Orders */}
       <div className="card">

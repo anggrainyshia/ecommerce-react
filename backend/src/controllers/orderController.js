@@ -1,9 +1,11 @@
 const sequelize = require('../config/database');
+const { Op } = require('sequelize');
 const { Order, OrderItem, OrderTracking, Product, ProductVariant, Payment } = require('../models');
 const { getCartItems } = require('./cartController');
 const redis = require('../config/redis');
 const { generateOrderNumber } = require('../utils/helpers');
 const emailService = require('../services/emailService');
+const { Coupon } = require('../models');
 
 const cartKey = (userId) => `cart:${userId}`;
 const STATUS_FLOW = {
@@ -25,7 +27,7 @@ const ORDER_INCLUDES = [
 exports.createOrder = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { shippingName, shippingAddress, shippingPhone, notes, customerEmail } = req.body;
+    const { shippingName, shippingAddress, shippingPhone, notes, customerEmail, couponCode } = req.body;
 
     const cartItems = await getCartItems(req.user.id);
     if (!cartItems || cartItems.length === 0) {
@@ -62,8 +64,25 @@ exports.createOrder = async (req, res) => {
       }
     }
 
-    // Calculate total
-    const totalAmount = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    // Calculate subtotal
+    const subtotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+    // Apply coupon if provided
+    let discountAmount = 0;
+    let appliedCouponCode = null;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ where: { code: couponCode.toUpperCase(), isActive: true } });
+      if (coupon && (!coupon.expiresAt || new Date() <= coupon.expiresAt) &&
+          (coupon.maxUses === null || coupon.usedCount < coupon.maxUses) &&
+          subtotal >= parseFloat(coupon.minOrderAmount)) {
+        discountAmount = coupon.discountType === 'percentage'
+          ? Math.round(subtotal * (parseFloat(coupon.value) / 100))
+          : Math.min(parseFloat(coupon.value), subtotal);
+        appliedCouponCode = coupon.code;
+        await coupon.increment('usedCount', { transaction: t });
+      }
+    }
+    const totalAmount = Math.max(0, subtotal - discountAmount);
 
     // Create order
     const order = await Order.create(
@@ -75,6 +94,8 @@ exports.createOrder = async (req, res) => {
         shippingPhone,
         notes,
         totalAmount,
+        discountAmount,
+        couponCode: appliedCouponCode,
         status: 'pending',
         customerEmail: customerEmail || req.user.email || null,
       },
@@ -171,12 +192,46 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
+exports.cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({ where: { id: req.params.id, userId: req.user.id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.status !== 'pending') {
+      return res.status(400).json({ error: 'Only pending orders can be cancelled' });
+    }
+
+    await order.update({ status: 'failed' });
+
+    // Restore stock
+    const items = await OrderItem.findAll({ where: { orderId: order.id } });
+    for (const item of items) {
+      if (item.variantId) {
+        await ProductVariant.increment('stock', { by: item.quantity, where: { id: item.variantId } });
+      } else {
+        await Product.increment('stock', { by: item.quantity, where: { id: item.productId } });
+      }
+    }
+
+    await OrderTracking.create({ orderId: order.id, status: 'failed', note: 'Cancelled by customer' });
+    res.json({ message: 'Order cancelled' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to cancel order' });
+  }
+};
+
 // Admin: get all orders
 exports.adminGetAll = async (req, res) => {
   try {
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, search, page = 1, limit = 20 } = req.query;
     const where = {};
     if (status) where.status = status;
+    if (search) {
+      where[Op.or] = [
+        { orderNumber: { [Op.iLike]: `%${search}%` } },
+        { shippingName: { [Op.iLike]: `%${search}%` } },
+        { customerEmail: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const { count, rows } = await Order.findAndCountAll({
